@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>تطبيق دعائي</title>
   <style>
-    /* خلفية متدرجة متحركة */
     body {
       margin: 0;
       height: 100vh;
@@ -79,5 +78,33 @@
 
   <!-- رابط الأسئلة الشائعة -->
   <p class="faq" onclick="window.location.href='faq.html'">الأسئلة الشائعة؟</p>
+
+  <!-- 🔹 Firebase SDK -->
+  <script type="module">
+    // استدعاء مكتبات Firebase من الـ CDN
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+    import { getAuth } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+    import { getFirestore } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-analytics.js";
+
+    // 🔹 إعدادات مشروعك
+    const firebaseConfig = {
+      apiKey: "AIzaSyDUW9M48CLaSNKbs-zrpuVl2Tu9EOqLUlA",
+      authDomain: "new-z-o.firebaseapp.com",
+      projectId: "new-z-o",
+      storageBucket: "new-z-o.firebasestorage.app",
+      messagingSenderId: "692467470055",
+      appId: "1:692467470055:web:3b4f4130b09f2044de9c42",
+      measurementId: "G-M8KNYMSY3T"
+    };
+
+    // 🔹 تهيئة Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const analytics = getAnalytics(app);
+
+    console.log("✅ Firebase متصل بالموقع");
+  </script>
 </body>
 </html>
