@@ -52,11 +52,56 @@
       color: #000;
       box-shadow: 0 0 20px #00e6ff, 0 0 40px #00e6ff;
     }
+
+    #videoOverlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.8);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    #videoContainer {
+      position: relative;
+      width: 80%;
+      height: 80%;
+    }
+
+    #closeBtn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(255, 0, 0, 0.7);
+      border: none;
+      color: white;
+      font-size: 1.5rem;
+      padding: 10px;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+    }
   </style>
 </head>
 <body>
-  <h1>z-o logo/h1>
-  <a href="login.html" class="btn" id="logoutBtn">بدأ</a>
+  <h1 id="welcome">مرحبا بك!</h1>
+  <a href="#" class="btn" id="logoutBtn">تسجيل الخروج</a>
+  <button class="btn" id="playVideoBtn">تشغيل الفيديو</button>
+
+  <div id="videoOverlay">
+    <div id="videoContainer">
+      <button id="closeBtn">×</button>
+      <iframe id="videoPlayer" src="https://www.youtube.com/embed/-ZqrbdUtIGE?autoplay=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+    </div>
+  </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
@@ -75,19 +120,39 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
+    const welcome = document.getElementById('welcome');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const playVideoBtn = document.getElementById('playVideoBtn');
+    const videoOverlay = document.getElementById('videoOverlay');
+    const closeBtn = document.getElementById('closeBtn');
+
     // التحقق من حالة تسجيل الدخول
     onAuthStateChanged(auth, (user) => {
       if (!user) {
         // إذا لم يكن مسجلاً الدخول، إعادة التوجيه للصفحة login.html
         window.location.href = "login.html";
+      } else {
+        // عرض اسم المستخدم
+        welcome.textContent = `مرحبا بك، ${user.displayName || user.email}!`;
       }
     });
 
     // زر تسجيل الخروج
-    const logoutBtn = document.getElementById('logoutBtn');
     logoutBtn.addEventListener('click', async () => {
       await signOut(auth);
       window.location.href = "login.html";
+    });
+
+    // زر تشغيل الفيديو
+    playVideoBtn.addEventListener('click', () => {
+      videoOverlay.style.display = 'flex';
+    });
+
+    // زر إغلاق الفيديو
+    closeBtn.addEventListener('click', () => {
+      videoOverlay.style.display = 'none';
+      const iframe = document.getElementById('videoPlayer');
+      iframe.src = iframe.src; // إعادة تحميل الفيديو لإيقافه
     });
   </script>
 </body>
