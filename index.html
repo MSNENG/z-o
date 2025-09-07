@@ -7,11 +7,11 @@
   <style>
     body {
       margin: 0;
-      height: 100vh;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
-      justify-content: center;
       align-items: center;
+      padding-top: 60px;
       background: linear-gradient(-45deg, #0f2027, #203a43, #2c5364, #0f2027);
       background-size: 400% 400%;
       animation: gradientMove 12s ease infinite;
@@ -26,163 +26,26 @@
       100% { background-position: 0% 50%; }
     }
 
-    h1 {
-      font-size: 2.5rem;
-      margin-bottom: 50px;
-      letter-spacing: 3px;
-      text-shadow: 0 0 15px #00e6ff, 0 0 30px #00e6ff;
-    }
-
-    .btn {
-      background: rgba(0, 230, 255, 0.1);
-      border: 2px solid #00e6ff;
-      color: #00e6ff;
-      font-size: 1.2rem;
-      padding: 12px 30px;
-      margin: 10px;
-      border-radius: 30px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      text-decoration: none;
-      display: inline-block;
-    }
-
-    .btn:hover {
-      background: #00e6ff;
-      color: #000;
-      box-shadow: 0 0 20px #00e6ff, 0 0 40px #00e6ff;
-    }
-
-    /* شريط القائمة */
-    .navbar {
-      width: auto;
-      background: rgba(0,0,0,0.6);
-      padding: 10px 20px;
-      display: flex;
-      justify-content: flex-end;
-      position: fixed;
-      top: 0;
-      right: 20px;
-      z-index: 1000;
-      border-radius: 0 0 10px 10px;
-    }
-
-    .dropdown {
-      position: relative;
-      display: inline-block;
-      cursor: pointer;
-    }
-
-    .dropbtn {
-      background: rgba(0, 230, 255, 0.1);
-      border: 2px solid #00e6ff;
-      color: #00e6ff;
-      padding: 10px 20px;
-      border-radius: 30px;
-      transition: 0.3s;
-      white-space: nowrap;
-    }
-
-    .dropbtn:hover {
-      background: #00e6ff;
-      color: #000;
-    }
-
-    .dropdown-content {
-      display: none;
-      position: absolute;
-      right: 0;
-      background-color: rgba(0,0,0,0.8);
-      min-width: 200px;
-      box-shadow: 0px 8px 16px rgba(0,0,0,0.2);
-      border-radius: 10px;
-      overflow: hidden;
-      z-index: 1001;
-    }
-
-    .dropdown-content a {
-      color: #fff;
-      padding: 12px 16px;
-      text-decoration: none;
-      display: block;
-      transition: 0.3s;
-    }
-
-    .dropdown-content a:hover {
-      background-color: #00e6ff;
-      color: #000;
-    }
-
-    .dropdown:hover .dropdown-content {
-      display: block;
-    }
-
-    #videoOverlay {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0, 0, 0, 0.8);
-      justify-content: center;
-      align-items: center;
-      z-index: 999;
-      flex-direction: column;
-    }
-
-    #videoContainer {
-      position: relative;
-      width: 80%;
-      height: 80%;
-    }
-
-    #closeBtn {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background: rgba(255, 0, 0, 0.7);
-      border: none;
-      color: white;
-      font-size: 1.5rem;
-      padding: 10px;
-      border-radius: 50%;
-      cursor: pointer;
-      z-index: 1000;
-    }
-
-    iframe {
-      width: 100%;
-      height: 100%;
-    }
-
+    h1 { font-size: 2.5rem; margin-bottom: 20px; text-shadow: 0 0 15px #00e6ff, 0 0 30px #00e6ff; }
+    #logoutBtn { position: fixed; top: 20px; right: 20px; padding: 10px 20px; border-radius: 30px; border: 2px solid #00e6ff; background: rgba(0,230,255,0.1); cursor: pointer; color: #00e6ff; transition: all 0.3s ease; }
+    #logoutBtn:hover { background: #00e6ff; color: #000; box-shadow: 0 0 20px #00e6ff; }
+    .video-container { width: 80%; max-width: 800px; margin: 20px 0; }
   </style>
 </head>
 <body>
-  <!-- شريط القائمة -->
-  <div class="navbar">
-    <div class="dropdown">
-      <div class="dropbtn" id="usernameBtn">المستخدم</div>
-      <div class="dropdown-content">
-        <a href="#" id="userInfo">معلومات المستخدم</a>
-        <a href="#" id="logoutBtnDropdown">تسجيل الخروج</a>
-      </div>
-    </div>
-  </div>
-
   <h1 id="welcome">مرحبا بك!</h1>
-  <button class="btn" id="playVideoBtn">تشغيل الفيديو</button>
+  <button id="logoutBtn">تسجيل الخروج</button>
 
-  <div id="videoOverlay">
-    <div id="videoContainer">
-      <button id="closeBtn">×</button>
-      <iframe id="videoPlayer" src="https://www.youtube.com/embed/-ZqrbdUtIGE?autoplay=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-    </div>
-  </div>
+  <!-- فيديوهات -->
+  <div class="video-container" data-video-id="-ZqrbdUtIGE" id="video1"></div>
+  <div class="video-container" data-video-id="dQw4w9WgXcQ" id="video2"></div>
+  <!-- أضف المزيد من div بنفس الشكل مع data-video-id للفيديوهات الجديدة -->
 
+  <script src="https://www.youtube.com/iframe_api"></script>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDUW9M48CLaSNKbs-zrpuVl2Tu9EOqLUlA",
@@ -196,55 +59,66 @@
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
+    const db = getFirestore(app);
 
+    let currentUser = null;
     const welcome = document.getElementById('welcome');
-    const usernameBtn = document.getElementById('usernameBtn');
-    const userInfo = document.getElementById('userInfo');
-    const logoutBtnDropdown = document.getElementById('logoutBtnDropdown');
+    const logoutBtn = document.getElementById('logoutBtn');
 
-    const playVideoBtn = document.getElementById('playVideoBtn');
-    const videoOverlay = document.getElementById('videoOverlay');
-    const closeBtn = document.getElementById('closeBtn');
-
-    const videoPlayer = document.getElementById('videoPlayer');
-
-    // التحقق من حالة تسجيل الدخول
     onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        window.location.href = "login.html";
-      } else {
+      if (!user) window.location.href = "login.html";
+      else {
+        currentUser = user;
         welcome.textContent = `مرحبا بك، ${user.displayName || user.email}!`;
-        usernameBtn.textContent = user.displayName || user.email;
       }
     });
 
-    // زر تسجيل الخروج
-    logoutBtnDropdown.addEventListener('click', async () => {
+    logoutBtn.addEventListener('click', async () => {
       await signOut(auth);
       window.location.href = "login.html";
     });
 
-    // زر معلومات المستخدم
-    userInfo.addEventListener('click', () => {
-      window.location.href = "user-info.html";
-    });
+    // إعداد YouTube Players متعدد
+    const players = {};
 
-    // تشغيل الفيديو overlay
-    playVideoBtn.addEventListener('click', () => {
-      videoOverlay.style.display = 'flex';
-      // إعادة تحميل الفيديو لتشغيله من البداية
-      videoPlayer.src = videoPlayer.src.split("?")[0] + "?autoplay=1";
-    });
+    function onYouTubeIframeAPIReady() {
+      const videoDivs = document.querySelectorAll('.video-container');
+      videoDivs.forEach(div => {
+        const videoId = div.dataset.videoId;
+        players[videoId] = new YT.Player(div.id, {
+          height: '360',
+          width: '640',
+          videoId: videoId,
+          playerVars: { autoplay: 0, controls: 1 },
+          events: { 'onStateChange': (event) => onPlayerStateChange(event, videoId) }
+        });
+      });
+    }
 
-    // إغلاق الفيديو
-    closeBtn.addEventListener('click', () => {
-      videoOverlay.style.display = 'none';
-      // إيقاف الفيديو عند الإغلاق
-      videoPlayer.src = "";
-      // إعادة تعيين المصدر لتمكين التشغيل لاحقًا
-      videoPlayer.src = "https://www.youtube.com/embed/-ZqrbdUtIGE?autoplay=1";
-    });
+    async function onPlayerStateChange(event, videoId) {
+      if (!currentUser) return;
+      if (event.data === YT.PlayerState.ENDED) {
+        const userDocRef = doc(db, "users", currentUser.uid);
+        const docSnap = await getDoc(userDocRef);
+        let watchedVideos = [];
+        let views = 0;
 
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          watchedVideos = data.watchedVideos || [];
+          views = data.views || 0;
+        }
+
+        if (!watchedVideos.includes(videoId)) {
+          views += 1;
+          watchedVideos.push(videoId);
+          await setDoc(userDocRef, { views, watchedVideos }, { merge: true });
+          console.log(`تم زيادة المشاهدات! المجموع الحالي: ${views}`);
+        }
+      }
+    }
+
+    window.onYouTubeIframeAPIReady = onYouTubeIframeAPIReady;
   </script>
 </body>
 </html>
