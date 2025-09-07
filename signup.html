@@ -109,6 +109,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDUW9M48CLaSNKbs-zrpuVl2Tu9EOqLUlA",
@@ -122,6 +123,7 @@
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
+    const db = getFirestore(app);
 
     const signupForm = document.getElementById('signupForm');
     const errorDiv = document.getElementById('error');
@@ -137,7 +139,6 @@
       const password = document.getElementById('password').value;
       const confirmPassword = document.getElementById('confirmPassword').value;
 
-      // التحقق من كلمة المرور
       const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/;
       if (!passwordRegex.test(password)) {
         errorDiv.textContent = "كلمة المرور يجب أن تحتوي على حروف وأرقام ولا تقل عن 6 خانات.";
@@ -150,9 +151,16 @@
       }
 
       try {
-        // إنشاء المستخدم في Firebase
+        // إنشاء الحساب في Authentication
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         await updateProfile(userCredential.user, { displayName: username });
+
+        // 🔹 إضافة المستخدم إلى Firestore
+        await setDoc(doc(db, "users", userCredential.user.uid), {
+          displayName: username,
+          email: email
+        });
+
         successDiv.textContent = "تم إنشاء الحساب بنجاح! يمكنك تسجيل الدخول الآن.";
         signupForm.reset();
       } catch (err) {
