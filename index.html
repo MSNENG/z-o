@@ -7,17 +7,12 @@
   <style>
     body {
       margin: 0;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
+      min-height: 100vh;
+      font-family: 'Tahoma', sans-serif;
+      color: #fff;
       background: linear-gradient(-45deg, #0f2027, #203a43, #2c5364, #0f2027);
       background-size: 400% 400%;
       animation: gradientMove 12s ease infinite;
-      font-family: 'Tahoma', sans-serif;
-      color: #fff;
-      text-align: center;
     }
 
     @keyframes gradientMove {
@@ -26,81 +21,110 @@
       100% { background-position: 0% 50%; }
     }
 
-    h1 {
-      font-size: 2.5rem;
-      margin-bottom: 50px;
-      letter-spacing: 3px;
-      text-shadow: 0 0 15px #00e6ff, 0 0 30px #00e6ff;
+    /* شريط القائمة */
+    .navbar {
+      width: 100%;
+      background: rgba(0,0,0,0.6);
+      padding: 10px 20px;
+      display: flex;
+      justify-content: flex-end;
+      position: fixed;
+      top: 0;
+      right: 0;
+      z-index: 100;
     }
 
-    .btn {
+    .dropdown {
+      position: relative;
+      display: inline-block;
+      cursor: pointer;
+    }
+
+    .dropbtn {
       background: rgba(0, 230, 255, 0.1);
       border: 2px solid #00e6ff;
       color: #00e6ff;
-      font-size: 1.2rem;
-      padding: 12px 30px;
-      margin: 10px;
+      padding: 10px 20px;
       border-radius: 30px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      text-decoration: none;
-      display: inline-block;
+      transition: 0.3s;
     }
 
-    .btn:hover {
+    .dropbtn:hover {
       background: #00e6ff;
       color: #000;
+    }
+
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      right: 0;
+      background-color: rgba(0,0,0,0.8);
+      min-width: 180px;
+      box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+      border-radius: 10px;
+      overflow: hidden;
+      z-index: 101;
+    }
+
+    .dropdown-content a {
+      color: #fff;
+      padding: 12px 16px;
+      text-decoration: none;
+      display: block;
+      transition: 0.3s;
+    }
+
+    .dropdown-content a:hover {
+      background-color: #00e6ff;
+      color: #000;
+    }
+
+    .dropdown:hover .dropdown-content {
+      display: block;
+    }
+
+    /* محتوى الصفحة */
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin-top: 80px;
+      padding: 20px;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 30px;
+      text-shadow: 0 0 15px #00e6ff, 0 0 30px #00e6ff;
+    }
+
+    video {
+      width: 80%;
+      max-width: 900px;
+      border-radius: 15px;
       box-shadow: 0 0 20px #00e6ff, 0 0 40px #00e6ff;
     }
 
-    #videoOverlay {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0, 0, 0, 0.8);
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-
-    #videoContainer {
-      position: relative;
-      width: 80%;
-      height: 80%;
-    }
-
-    #closeBtn {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background: rgba(255, 0, 0, 0.7);
-      border: none;
-      color: white;
-      font-size: 1.5rem;
-      padding: 10px;
-      border-radius: 50%;
-      cursor: pointer;
-    }
-
-    iframe {
-      width: 100%;
-      height: 100%;
-    }
   </style>
 </head>
 <body>
-  <h1 id="welcome">مرحبا بك!</h1>
-  <a href="#" class="btn" id="logoutBtn">تسجيل الخروج</a>
-  <button class="btn" id="playVideoBtn">تشغيل الفيديو</button>
-
-  <div id="videoOverlay">
-    <div id="videoContainer">
-      <button id="closeBtn">×</button>
-      <iframe id="videoPlayer" src="https://www.youtube.com/embed/-ZqrbdUtIGE?autoplay=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+  <div class="navbar">
+    <div class="dropdown">
+      <div class="dropbtn" id="usernameBtn">المستخدم</div>
+      <div class="dropdown-content">
+        <a href="#" id="userInfo">معلومات المستخدم</a>
+        <a href="#" id="logoutBtn">تسجيل الخروج</a>
+      </div>
     </div>
+  </div>
+
+  <div class="container">
+    <h1 id="welcome">مرحبا بك!</h1>
+    <video id="mainVideo" controls autoplay muted loop>
+      <source src="https://www.youtube.com/embed/-ZqrbdUtIGE?autoplay=1" type="video/mp4">
+      متصفحك لا يدعم تشغيل الفيديو.
+    </video>
   </div>
 
   <script type="module">
@@ -121,19 +145,17 @@
     const auth = getAuth(app);
 
     const welcome = document.getElementById('welcome');
+    const usernameBtn = document.getElementById('usernameBtn');
     const logoutBtn = document.getElementById('logoutBtn');
-    const playVideoBtn = document.getElementById('playVideoBtn');
-    const videoOverlay = document.getElementById('videoOverlay');
-    const closeBtn = document.getElementById('closeBtn');
+    const userInfo = document.getElementById('userInfo');
 
     // التحقق من حالة تسجيل الدخول
     onAuthStateChanged(auth, (user) => {
       if (!user) {
-        // إذا لم يكن مسجلاً الدخول، إعادة التوجيه للصفحة login.html
         window.location.href = "login.html";
       } else {
-        // عرض اسم المستخدم
-        welcome.textContent = `مرحبا بك، ${user.displayName || user.email}!`;
+        welcome.textContent = `مرحبا بك!`;
+        usernameBtn.textContent = user.displayName || user.email;
       }
     });
 
@@ -143,16 +165,9 @@
       window.location.href = "login.html";
     });
 
-    // زر تشغيل الفيديو
-    playVideoBtn.addEventListener('click', () => {
-      videoOverlay.style.display = 'flex';
-    });
-
-    // زر إغلاق الفيديو
-    closeBtn.addEventListener('click', () => {
-      videoOverlay.style.display = 'none';
-      const iframe = document.getElementById('videoPlayer');
-      iframe.src = iframe.src; // إعادة تحميل الفيديو لإيقافه
+    // زر معلومات المستخدم (تحويل للصفحة لاحقًا)
+    userInfo.addEventListener('click', () => {
+      window.location.href = "user-info.html"; // سننشئها لاحقًا
     });
   </script>
 </body>
