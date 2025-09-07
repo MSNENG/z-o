@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>إنشاء حساب</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(-45deg, #0f2027, #203a43, #2c5364, #0f2027);
+      background-size: 400% 400%;
+      animation: gradientMove 12s ease infinite;
+      font-family: 'Tahoma', sans-serif;
+      color: #fff;
+      text-align: center;
+    }
+
+    @keyframes gradientMove {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 30px;
+      letter-spacing: 3px;
+      text-shadow: 0 0 15px #00e6ff, 0 0 30px #00e6ff;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      width: 300px;
+    }
+
+    input {
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 20px;
+      border: 2px solid #00e6ff;
+      background: rgba(0,0,0,0.2);
+      color: #fff;
+      font-size: 1rem;
+      text-align: right;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+
+    input:focus {
+      background: rgba(0,0,0,0.4);
+      box-shadow: 0 0 15px #00e6ff;
+      border-color: #00e6ff;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 12px;
+      border-radius: 30px;
+      border: 2px solid #00e6ff;
+      background: rgba(0,230,255,0.1);
+      color: #00e6ff;
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    button:hover {
+      background: #00e6ff;
+      color: #000;
+      box-shadow: 0 0 20px #00e6ff, 0 0 40px #00e6ff;
+    }
+
+    .error {
+      color: #ff4d4d;
+      font-size: 0.9rem;
+      margin-top: -5px;
+      margin-bottom: 10px;
+      text-align: right;
+    }
+
+    .success {
+      color: #00ffb3;
+      font-size: 1rem;
+      margin-top: 10px;
+    }
+
+  </style>
+</head>
+<body>
+  <h1>إنشاء حساب جديد</h1>
+
+  <form id="signupForm">
+    <input type="text" id="username" placeholder="اسم المستخدم" required>
+    <input type="email" id="email" placeholder="البريد الإلكتروني" required>
+    <input type="password" id="password" placeholder="كلمة المرور" required>
+    <input type="password" id="confirmPassword" placeholder="تأكيد كلمة المرور" required>
+    <div id="error" class="error"></div>
+    <button type="submit">إنشاء الحساب</button>
+    <div id="success" class="success"></div>
+  </form>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDUW9M48CLaSNKbs-zrpuVl2Tu9EOqLUlA",
+      authDomain: "new-z-o.firebaseapp.com",
+      projectId: "new-z-o",
+      storageBucket: "new-z-o.firebasestorage.app",
+      messagingSenderId: "692467470055",
+      appId: "1:692467470055:web:3b4f4130b09f2044de9c42",
+      measurementId: "G-M8KNYMSY3T"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    const signupForm = document.getElementById('signupForm');
+    const errorDiv = document.getElementById('error');
+    const successDiv = document.getElementById('success');
+
+    signupForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorDiv.textContent = '';
+      successDiv.textContent = '';
+
+      const username = document.getElementById('username').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+
+      // التحقق من كلمة المرور
+      const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/;
+      if (!passwordRegex.test(password)) {
+        errorDiv.textContent = "كلمة المرور يجب أن تحتوي على حروف وأرقام ولا تقل عن 6 خانات.";
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        errorDiv.textContent = "كلمة المرور وتأكيدها غير متطابقين.";
+        return;
+      }
+
+      try {
+        // إنشاء المستخدم في Firebase
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        await updateProfile(userCredential.user, { displayName: username });
+        successDiv.textContent = "تم إنشاء الحساب بنجاح! يمكنك تسجيل الدخول الآن.";
+        signupForm.reset();
+      } catch (err) {
+        errorDiv.textContent = err.message;
+      }
+    });
+  </script>
+</body>
+</html>
