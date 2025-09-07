@@ -8,10 +8,10 @@
     body {
       margin: 0;
       min-height: 100vh;
+      padding-top: 60px; /* مساحة للشريط العلوي */
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding-top: 60px;
       background: linear-gradient(-45deg, #0f2027, #203a43, #2c5364, #0f2027);
       background-size: 400% 400%;
       animation: gradientMove 12s ease infinite;
@@ -27,19 +27,56 @@
     }
 
     h1 { font-size: 2.5rem; margin-bottom: 20px; text-shadow: 0 0 15px #00e6ff, 0 0 30px #00e6ff; }
-    #logoutBtn { position: fixed; top: 20px; right: 20px; padding: 10px 20px; border-radius: 30px; border: 2px solid #00e6ff; background: rgba(0,230,255,0.1); cursor: pointer; color: #00e6ff; transition: all 0.3s ease; }
-    #logoutBtn:hover { background: #00e6ff; color: #000; box-shadow: 0 0 20px #00e6ff; }
+
+    /* الشريط العلوي */
+    #topBar {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 50px;
+      background: rgba(0,0,0,0.7);
+      display: flex; justify-content: flex-end; align-items: center;
+      padding: 0 20px; z-index: 100;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    }
+
+    #userMenu { position: relative; }
+    #userBtn {
+      background:none; border:none; color:#00e6ff; cursor:pointer; font-size:1rem;
+    }
+    #userBtn:hover { text-decoration:underline; }
+    #dropdown {
+      display:none; position:absolute; right:0; top:100%;
+      background:#111; border:1px solid #00e6ff; border-radius:5px;
+      min-width:150px;
+    }
+    #dropdown a {
+      display:block; padding:8px 12px; color:#00e6ff; text-decoration:none;
+    }
+    #dropdown a:hover { background:#00e6ff; color:#000; }
+
+    /* الفيديوهات */
     .video-container { width: 80%; max-width: 800px; margin: 20px 0; }
+
   </style>
 </head>
 <body>
+  <!-- الشريط العلوي -->
+  <div id="topBar">
+    <div id="userMenu">
+      <button id="userBtn">اسم المستخدم ▼</button>
+      <div id="dropdown">
+        <a href="user-info.html">معلومات المستخدم</a>
+        <a href="#" id="logoutLink">تسجيل الخروج</a>
+      </div>
+    </div>
+  </div>
+
   <h1 id="welcome">مرحبا بك</h1>
-  <button id="logoutBtn">تسجيل الخروج</button>
 
   <!-- فيديوهات -->
   <div class="video-container" data-video-id="-ZqrbdUtIGE" id="video1"></div>
   <div class="video-container" data-video-id="dQw4w9WgXcQ" id="video2"></div>
-  <!-- أضف المزيد من div بنفس الشكل مع data-video-id للفيديوهات الجديدة -->
+  <!-- أضف المزيد بنفس الطريقة -->
 
   <script src="https://www.youtube.com/iframe_api"></script>
   <script type="module">
@@ -63,17 +100,26 @@
 
     let currentUser = null;
     const welcome = document.getElementById('welcome');
-    const logoutBtn = document.getElementById('logoutBtn');
+    const userBtn = document.getElementById('userBtn');
+    const dropdown = document.getElementById('dropdown');
+    const logoutLink = document.getElementById('logoutLink');
 
     onAuthStateChanged(auth, (user) => {
       if (!user) window.location.href = "login.html";
       else {
         currentUser = user;
-        welcome.textContent = `مرحبا بك، ${user.displayName || user.email}!`;
+        const displayName = user.displayName || user.email;
+        welcome.textContent = `مرحبا بك، ${displayName}!`;
+        userBtn.textContent = displayName + ' ▼';
       }
     });
 
-    logoutBtn.addEventListener('click', async () => {
+    // القائمة المنسدلة
+    userBtn.addEventListener('click', () => {
+      dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+    });
+
+    logoutLink.addEventListener('click', async () => {
       await signOut(auth);
       window.location.href = "login.html";
     });
