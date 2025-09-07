@@ -23,15 +23,16 @@
 
     /* شريط القائمة */
     .navbar {
-      width: 100%;
+      width: auto;
       background: rgba(0,0,0,0.6);
       padding: 10px 20px;
       display: flex;
       justify-content: flex-end;
       position: fixed;
       top: 0;
-      right: 0;
-      z-index: 100;
+      right: 20px;
+      z-index: 1000;
+      border-radius: 0 0 10px 10px;
     }
 
     .dropdown {
@@ -47,6 +48,7 @@
       padding: 10px 20px;
       border-radius: 30px;
       transition: 0.3s;
+      white-space: nowrap;
     }
 
     .dropbtn:hover {
@@ -59,11 +61,11 @@
       position: absolute;
       right: 0;
       background-color: rgba(0,0,0,0.8);
-      min-width: 180px;
-      box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+      min-width: 200px;
+      box-shadow: 0px 8px 16px rgba(0,0,0,0.2);
       border-radius: 10px;
       overflow: hidden;
-      z-index: 101;
+      z-index: 1001;
     }
 
     .dropdown-content a {
@@ -89,7 +91,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      margin-top: 80px;
+      margin-top: 100px;
       padding: 20px;
     }
 
@@ -99,16 +101,54 @@
       text-shadow: 0 0 15px #00e6ff, 0 0 30px #00e6ff;
     }
 
-    video {
+    iframe, video {
       width: 80%;
       max-width: 900px;
       border-radius: 15px;
       box-shadow: 0 0 20px #00e6ff, 0 0 40px #00e6ff;
+      margin-bottom: 20px;
+      cursor: pointer;
     }
 
+    /* نافذة overlay لتكبير الفيديو */
+    #videoOverlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.9);
+      justify-content: center;
+      align-items: center;
+      z-index: 999;
+      flex-direction: column;
+    }
+
+    #videoOverlay iframe, #videoOverlay video {
+      width: 90%;
+      height: 90%;
+      border-radius: 10px;
+      box-shadow: 0 0 30px #00e6ff, 0 0 60px #00e6ff;
+    }
+
+    #closeBtn {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      background: rgba(255,0,0,0.8);
+      border: none;
+      color: #fff;
+      font-size: 2rem;
+      padding: 10px 20px;
+      border-radius: 50%;
+      cursor: pointer;
+      z-index: 1000;
+    }
   </style>
 </head>
 <body>
+  <!-- شريط القائمة -->
   <div class="navbar">
     <div class="dropdown">
       <div class="dropbtn" id="usernameBtn">المستخدم</div>
@@ -121,10 +161,21 @@
 
   <div class="container">
     <h1 id="welcome">مرحبا بك!</h1>
-    <video id="mainVideo" controls autoplay muted loop>
-      <source src="https://www.youtube.com/embed/-ZqrbdUtIGE?autoplay=1" type="video/mp4">
+
+    <!-- فيديوهات -->
+    <iframe id="ytVideo" src="https://www.youtube.com/embed/-ZqrbdUtIGE?mute=1" frameborder="0"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+    <video id="mp4Video" controls muted>
+      <source src="videos/myVideo.mp4" type="video/mp4">
       متصفحك لا يدعم تشغيل الفيديو.
     </video>
+  </div>
+
+  <!-- نافذة overlay -->
+  <div id="videoOverlay">
+    <button id="closeBtn">×</button>
+    <div id="overlayContainer"></div>
   </div>
 
   <script type="module">
@@ -149,7 +200,14 @@
     const logoutBtn = document.getElementById('logoutBtn');
     const userInfo = document.getElementById('userInfo');
 
-    // التحقق من حالة تسجيل الدخول
+    const videoOverlay = document.getElementById('videoOverlay');
+    const overlayContainer = document.getElementById('overlayContainer');
+    const closeBtn = document.getElementById('closeBtn');
+
+    const ytVideo = document.getElementById('ytVideo');
+    const mp4Video = document.getElementById('mp4Video');
+
+    // التحقق من تسجيل الدخول
     onAuthStateChanged(auth, (user) => {
       if (!user) {
         window.location.href = "login.html";
@@ -159,16 +217,33 @@
       }
     });
 
-    // زر تسجيل الخروج
     logoutBtn.addEventListener('click', async () => {
       await signOut(auth);
       window.location.href = "login.html";
     });
 
-    // زر معلومات المستخدم (تحويل للصفحة لاحقًا)
     userInfo.addEventListener('click', () => {
-      window.location.href = "user-info.html"; // سننشئها لاحقًا
+      window.location.href = "user-info.html";
     });
-  </script>
-</body>
-</html>
+
+    // وظيفة تكبير الفيديو
+    function openOverlay(videoElement, type) {
+      overlayContainer.innerHTML = ''; // مسح أي فيديو سابق
+      let clone;
+      if (type === 'youtube') {
+        clone = document.createElement('iframe');
+        clone.src = videoElement.src + "?autoplay=1&mute=1";
+        clone.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
+        clone.allowFullscreen = true;
+      } else if (type === 'mp4') {
+        clone = document.createElement('video');
+        clone.src = videoElement.querySelector('source').src;
+        clone.controls = true;
+        clone.autoplay = true;
+        clone.muted = false;
+      }
+      overlayContainer.appendChild(clone);
+      videoOverlay.style.display = 'flex';
+    }
+
+    ytVideo.a
