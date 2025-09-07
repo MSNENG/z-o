@@ -124,22 +124,23 @@
 
       const identifier = document.getElementById('identifier').value.trim();
       const password = document.getElementById('password').value;
+      let emailToUse = identifier;
 
       try {
-        let emailToUse = identifier;
-
-        // التحقق إذا المدخل اسم مستخدم، نحصل البريد المرتبط به
+        // إذا المدخل ليس بريدًا، نبحث عن البريد المرتبط باسم المستخدم في Firestore
         if (!identifier.includes('@')) {
-          const usersRef = collection(db, "users"); // إذا خزنت المستخدمين في Firestore
+          const usersRef = collection(db, "users");
           const q = query(usersRef, where("displayName", "==", identifier));
           const querySnapshot = await getDocs(q);
+
           if (querySnapshot.empty) throw new Error("اسم المستخدم غير موجود.");
           emailToUse = querySnapshot.docs[0].data().email;
         }
 
         // تسجيل الدخول باستخدام البريد
         await signInWithEmailAndPassword(auth, emailToUse, password);
-        // بعد تسجيل الدخول، إعادة توجيه للصفحة الرئيسية
+
+        // تحويل المستخدم للصفحة الرئيسية بعد تسجيل الدخول
         window.location.href = "index.html";
 
       } catch (err) {
