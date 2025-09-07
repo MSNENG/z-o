@@ -161,8 +161,14 @@
           email: email
         });
 
-        successDiv.textContent = "تم إنشاء الحساب بنجاح! يمكنك تسجيل الدخول الآن.";
+        successDiv.textContent = "تم إنشاء الحساب بنجاح! جاري تحويلك للصفحة الرئيسية...";
         signupForm.reset();
+
+        // تحويل تلقائي للصفحة الرئيسية بعد 1.5 ثانية
+        setTimeout(() => {
+          window.location.href = "index.html";
+        }, 1500);
+
       } catch (err) {
         errorDiv.textContent = err.message;
       }
