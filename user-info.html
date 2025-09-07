@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>معلومات المستخدم</title>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding-top: 80px;
+      background: linear-gradient(-45deg, #0f2027, #203a43, #2c5364, #0f2027);
+      background-size: 400% 400%;
+      animation: gradientMove 12s ease infinite;
+      font-family: 'Tahoma', sans-serif;
+      color: #fff;
+      text-align: center;
+    }
+
+    @keyframes gradientMove {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    h1 {
+      margin-bottom: 20px;
+      text-shadow: 0 0 15px #00e6ff, 0 0 30px #00e6ff;
+    }
+
+    input {
+      margin: 10px 0;
+      padding: 12px 15px;
+      border-radius: 10px;
+      border: 2px solid #00e6ff;
+      width: 300px;
+      max-width: 80%;
+      font-size: 1rem;
+      outline: none;
+      background: rgba(0,0,0,0.3);
+      color: #fff;
+      transition: 0.3s;
+    }
+
+    input:focus {
+      border-color: #00ffea;
+      box-shadow: 0 0 10px #00ffea;
+      background: rgba(0,0,0,0.6);
+    }
+
+    .info-field {
+      pointer-events: none;
+      background: rgba(0,0,0,0.5);
+    }
+
+    .btn {
+      background: rgba(0, 230, 255, 0.1);
+      border: 2px solid #00e6ff;
+      color: #00e6ff;
+      font-size: 1.2rem;
+      padding: 12px 30px;
+      margin: 20px;
+      border-radius: 30px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn:hover {
+      background: #00e6ff;
+      color: #000;
+      box-shadow: 0 0 20px #00e6ff, 0 0 40px #00e6ff;
+    }
+
+    #backBtn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+    }
+
+    .stat {
+      margin-top: 15px;
+      font-size: 1.1rem;
+      text-shadow: 0 0 10px #00e6ff;
+    }
+
+  </style>
+</head>
+<body>
+  <button class="btn" id="backBtn">العودة للصفحة الرئيسية</button>
+  <h1>معلومات المستخدم</h1>
+
+  <!-- بيانات المستخدم -->
+  <input type="text" class="info-field" id="displayName" placeholder="اسم المستخدم">
+  <input type="email" class="info-field" id="email" placeholder="البريد الإلكتروني">
+
+  <!-- الحقول البنكية -->
+  <input type="text" id="fullName" placeholder="الاسم الثلاثي">
+  <input type="text" id="bankName" placeholder="اسم البنك">
+  <input type="text" id="ibanNumber" placeholder="رقم الآيبان">
+  <input type="text" id="bankUsername" placeholder="اسم مستخدم الحساب البنكي">
+
+  <!-- تغيير كلمة المرور -->
+  <input type="password" id="newPassword" placeholder="كلمة المرور الجديدة">
+  <input type="password" id="confirmPassword" placeholder="تأكيد كلمة المرور الجديدة">
+
+  <button class="btn" id="saveBtn">حفظ المعلومات</button>
+
+  <!-- إحصائيات -->
+  <div class="stat" id="viewsStat">عدد المشاهدات: 0</div>
+  <div class="stat" id="amountStat">المبلغ: 0</div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+    import { getAuth, onAuthStateChanged, updatePassword } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDUW9M48CLaSNKbs-zrpuVl2Tu9EOqLUlA",
+      authDomain: "new-z-o.firebaseapp.com",
+      projectId: "new-z-o",
+      storageBucket: "new-z-o.firebasestorage.app",
+      messagingSenderId: "692467470055",
+      appId: "1:692467470055:web:3b4f4130b09f2044de9c42",
+      measurementId: "G-M8KNYMSY3T"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const displayNameField = document.getElementById('displayName');
+    const emailField = document.getElementById('email');
+    const backBtn = document.getElementById('backBtn');
+    const saveBtn = document.getElementById('saveBtn');
+    const viewsStat = document.getElementById('viewsStat');
+    const amountStat = document.getElementById('amountStat');
+
+    let currentUser = null;
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) window.location.href = "login.html";
+      else {
+        currentUser = user;
+        displayNameField.value = user.displayName || '';
+        emailField.value = user.email || '';
+
+        const userDocRef = doc(db, "users", user.uid);
+
+        // مراقبة Firestore لتحديث الإحصائيات مباشرة
+        onSnapshot(userDocRef, (docSnap) => {
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            const views = data.views || 0;
+            const amount = views / 2;
+            viewsStat.textContent = `عدد المشاهدات: ${views}`;
+            amountStat.textContent = `المبلغ: ${amount}`;
+          }
+        });
+
+        // جلب البيانات البنكية
+        const docSnap = await getDoc(userDocRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          document.getElementById('fullName').value = data.fullName || '';
+          document.getElementById('bankName').value = data.bankName || '';
+          document.getElementById('ibanNumber').value = data.ibanNumber || '';
+          document.getElementById('bankUsername').value = data.bankUsername || '';
+        }
+      }
+    });
+
+    backBtn.addEventListener('click', () => {
+      window.location.href = "index.html";
+    });
+
+    saveBtn.addEventListener('click', async () => {
+      if (!currentUser) return;
+
+      const fullName = document.getElementById('fullName').value;
+      const bankName = document.getElementById('bankName').value;
+      const ibanNumber = document.getElementById('ibanNumber').value;
+      const bankUsername = document.getElementById('bankUsername').value;
+
+      const userDocRef = doc(db, "users", currentUser.uid);
+      await setDoc(userDocRef, { fullName, bankName, ibanNumber, bankUsername }, { merge: true });
+
+      // تغيير كلمة المرور
+      const newPassword = document.getElementById('newPassword').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+      if (newPassword) {
+        if (newPassword.length < 6) {
+          alert("كلمة المرور يجب أن تكون 6 خانات أو أكثر");
+          return;
+        }
+        if (newPassword !== confirmPassword) {
+          alert("كلمة المرور غير متطابقة");
+          return;
+        }
+        try {
+          await updatePassword(currentUser, newPassword);
+          alert("تم تحديث كلمة المرور بنجاح!");
+        } catch (error) {
+          alert("حدث خطأ عند تغيير كلمة المرور: " + error.message);
+          return;
+        }
+      }
+
+      alert("تم حفظ المعلومات بنجاح!");
+    });
+  </script>
+</body>
+</html>
