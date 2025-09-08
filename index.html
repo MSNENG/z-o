@@ -5,38 +5,70 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>الصفحة الرئيسية</title>
   <style>
-    body { margin: 0; min-height: 100vh; padding-top: 60px;
-      display: flex; flex-direction: column; align-items: center;
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding-top: 70px; /* مساحة للشريط العلوي */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       background: linear-gradient(-45deg, #0f2027, #203a43, #2c5364, #0f2027);
-      background-size: 400% 400%; animation: gradientMove 12s ease infinite;
-      font-family: 'Tahoma', sans-serif; color: #fff; text-align: center;
+      background-size: 400% 400%;
+      animation: gradientMove 12s ease infinite;
+      font-family: 'Tahoma', sans-serif;
+      color: #fff;
+      text-align: center;
     }
     @keyframes gradientMove {
       0% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
-    h1 { font-size: 2.5rem; margin-bottom: 20px; text-shadow: 0 0 15px #00e6ff, 0 0 30px #00e6ff; }
-    #topBar { position: fixed; top: 0; left: 0; width: 100%; height: 50px;
-      background: rgba(0,0,0,0.7); display: flex; justify-content: flex-end;
-      align-items: center; padding: 0 20px; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+
+    #topBar {
+      position: fixed; top: 0; left: 0; width: 100%; height: 60px;
+      background: rgba(0,0,0,0.8); display: flex; justify-content: flex-end; align-items: center;
+      padding: 0 20px; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.5);
     }
+    #balanceDisplay { color: gold; margin-left: 20px; font-weight: bold; font-size: 1.1rem; }
     #userMenu { position: relative; }
     #userBtn { background:none; border:none; color:#00e6ff; cursor:pointer; font-size:1rem; }
     #userBtn:hover { text-decoration:underline; }
-    #dropdown { display:none; position:absolute; right:0; top:100%; background:#111; border:1px solid #00e6ff; border-radius:5px; min-width:150px; }
+    #dropdown {
+      display:none; position:absolute; right:0; top:100%; background:#111;
+      border:1px solid #00e6ff; border-radius:5px; min-width:150px;
+    }
     #dropdown a { display:block; padding:8px 12px; color:#00e6ff; text-decoration:none; }
     #dropdown a:hover { background:#00e6ff; color:#000; }
+
     .video-container { width: 80%; max-width: 800px; margin: 20px 0; position: relative; }
-    .video-actions { margin-top: 10px; display:flex; align-items:center; justify-content:center; gap:20px; }
-    .analysis-modal { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
-      background:#111; padding:20px; border:2px solid #00e6ff; border-radius:10px; z-index:200; }
-    .close-analysis { cursor:pointer; background:#00e6ff; color:#000; border:none; padding:5px 10px; border-radius:5px; margin-bottom:10px; }
+
+    .interest {
+      margin-top: 5px; display: flex; align-items: center; justify-content: center;
+      gap: 5px; color: #00e6ff; cursor: pointer;
+    }
+
+    /* زر إضافة فيديو للمشرف */
+    #addVideoBtn { margin: 10px; padding: 8px 15px; border-radius: 20px; border: 2px solid #00e6ff; background: rgba(0,230,255,0.1); color:#00e6ff; cursor:pointer; }
+    #addVideoBtn:hover { background:#00e6ff; color:#000; }
+
+    /* Modal */
+    #videoModal {
+      display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+      background: rgba(0,0,0,0.8); justify-content:center; align-items:center; z-index:200;
+    }
+    #videoModalContent {
+      background:#111; padding:20px; border-radius:10px; width:90%; max-width:400px; text-align:center;
+    }
+    #closeModal { margin-top:10px; cursor:pointer; color:#ff4d4d; }
+
   </style>
 </head>
 <body>
 
+  <!-- الشريط العلوي -->
   <div id="topBar">
+    <div id="balanceDisplay">$ 0 SR</div>
     <div id="userMenu">
       <button id="userBtn">اسم المستخدم ▼</button>
       <div id="dropdown">
@@ -48,14 +80,28 @@
 
   <h1 id="welcome">مرحبا بك</h1>
 
-  <!-- شريط الفيديوهات -->
+  <!-- زر إضافة فيديو للمشرف -->
+  <button id="addVideoBtn" style="display:none;">أضف فيديو</button>
+
+  <!-- الفيديوهات -->
   <div id="videosContainer"></div>
+
+  <!-- Modal لإدخال رابط الفيديو -->
+  <div id="videoModal">
+    <div id="videoModalContent">
+      <h3>أدخل رابط الفيديو من YouTube</h3>
+      <input type="text" id="videoLinkInput" placeholder="https://youtu.be/..." style="width:90%; padding:5px;">
+      <br>
+      <button id="saveVideoBtn" style="margin-top:10px;">حفظ الفيديو</button>
+      <div id="closeModal">إغلاق</div>
+    </div>
+  </div>
 
   <script src="https://www.youtube.com/iframe_api"></script>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDUW9M48CLaSNKbs-zrpuVl2Tu9EOqLUlA",
@@ -66,7 +112,6 @@
       appId: "1:692467470055:web:3b4f4130b09f2044de9c42",
       measurementId: "G-M8KNYMSY3T"
     };
-
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
@@ -76,96 +121,87 @@
     const userBtn = document.getElementById('userBtn');
     const dropdown = document.getElementById('dropdown');
     const logoutLink = document.getElementById('logoutLink');
-    const videosContainer = document.getElementById('videosContainer');
+    const balanceDisplay = document.getElementById('balanceDisplay');
 
-    let players = {};
+    const addVideoBtn = document.getElementById('addVideoBtn');
+    const videoModal = document.getElementById('videoModal');
+    const videoLinkInput = document.getElementById('videoLinkInput');
+    const saveVideoBtn = document.getElementById('saveVideoBtn');
+    const closeModal = document.getElementById('closeModal');
+    const videosContainer = document.getElementById('videosContainer');
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) window.location.href = "login.html";
       else {
         currentUser = user;
+        const userDocRef = doc(db,"users",user.uid);
+        const docSnap = await getDoc(userDocRef);
+        let userData = {};
+        if(docSnap.exists()) userData = docSnap.data();
         const displayName = user.displayName || user.email;
         welcome.textContent = `مرحبا بك، ${displayName}!`;
         userBtn.textContent = displayName + ' ▼';
+        balanceDisplay.textContent = `$ ${userData.balance || 0} SR`;
 
-        // تحميل جميع الفيديوهات من Firestore
-        const videosSnap = await getDocs(collection(db, "videos"));
-        videosSnap.forEach(vDoc => {
-          const vData = vDoc.data();
-          createVideoElement(vDoc.id, vData.videoId);
-        });
+        // إذا كان المشرف أظهر زر إضافة الفيديو
+        if(userData.role === "admin") addVideoBtn.style.display = "inline-block";
+
+        // تحميل الفيديوهات
+        loadVideos();
       }
     });
 
+    // القائمة المنسدلة
     userBtn.addEventListener('click', () => { dropdown.style.display = dropdown.style.display==='block'?'none':'block'; });
-    logoutLink.addEventListener('click', async () => { await signOut(auth); window.location.href="login.html"; });
+    logoutLink.addEventListener('click', async ()=>{ await signOut(auth); window.location.href="login.html"; });
 
-    function createVideoElement(docId, videoId) {
-      // إنشاء الحاوية
-      const div = document.createElement('div');
-      div.className = 'video-container';
-      div.id = 'video-'+docId;
-      div.innerHTML = `<div id="player-${docId}"></div>
-        <div class="video-actions">
-          <label>مهتم <input type="checkbox" class="interested-checkbox"></label>
-          <button class="show-analysis">عرض التحليل</button>
-        </div>
-        <div class="analysis-modal">
-          <button class="close-analysis">إغلاق</button>
-          <canvas class="chart-canvas" width="400" height="250"></canvas>
-        </div>
-      `;
-      videosContainer.appendChild(div);
+    addVideoBtn.addEventListener('click', ()=>{ videoModal.style.display = "flex"; });
+    closeModal.addEventListener('click', ()=>{ videoModal.style.display = "none"; });
 
-      // إنشاء Player
-      players[videoId] = new YT.Player('player-'+docId, {
-        height: '360', width: '640', videoId: videoId,
-        events: { 'onStateChange': (event) => onPlayerStateChange(event, videoId, docId) }
+    saveVideoBtn.addEventListener('click', async ()=>{
+      const link = videoLinkInput.value.trim();
+      if(!link) return alert("أدخل رابط الفيديو!");
+      let videoId = "";
+      if(link.includes("v=")) videoId = link.split("v=")[1].split("&")[0];
+      else if(link.includes("youtu.be/")) videoId = link.split("youtu.be/")[1].split("?")[0];
+      else return alert("رابط غير صالح!");
+      await addDoc(collection(db,"videos"), { videoId: videoId, interestedUsers: [] });
+      videoLinkInput.value="";
+      videoModal.style.display="none";
+      loadVideos(); // إعادة تحميل الفيديوهات
+    });
+
+    async function loadVideos(){
+      videosContainer.innerHTML="";
+      const videosSnap = await getDocs(collection(db,"videos"));
+      videosSnap.forEach(videoDoc=>{
+        const data = videoDoc.data();
+        const div = document.createElement('div');
+        div.className="video-container";
+        div.innerHTML = `
+          <div id="${videoDoc.id}" data-video-id="${data.videoId}"></div>
+          <div class="interest">
+            <label><input type="checkbox" class="interestCheckbox"> مهتم</label>
+          </div>
+        `;
+        videosContainer.appendChild(div);
       });
+      if(typeof YT!=="undefined" && YT.Player) onYouTubeIframeAPIReady();
+    }
 
-      // الأحداث: إظهار/إغلاق التحليل
-      const modal = div.querySelector('.analysis-modal');
-      div.querySelector('.show-analysis').addEventListener('click', () => modal.style.display='block');
-      modal.querySelector('.close-analysis').addEventListener('click', () => modal.style.display='none');
-
-      // حدث مهتم
-      const checkbox = div.querySelector('.interested-checkbox');
-      checkbox.addEventListener('change', async () => {
-        const userDocRef = doc(db, "videos", docId);
-        const videoSnap = await getDoc(userDocRef);
-        let data = videoSnap.exists()?videoSnap.data():{};
-        let interestedUsers = data.interestedUsers || [];
-        if (checkbox.checked) {
-          if (!interestedUsers.includes(currentUser.uid)) interestedUsers.push(currentUser.uid);
-        } else {
-          interestedUsers = interestedUsers.filter(uid => uid!==currentUser.uid);
-        }
-        await setDoc(userDocRef, {interestedUsers}, {merge:true});
+    // YouTube API
+    const players = {};
+    function onYouTubeIframeAPIReady(){
+      const videoDivs = document.querySelectorAll('.video-container > div[data-video-id]');
+      videoDivs.forEach(div=>{
+        const videoId = div.dataset.videoId;
+        players[videoId] = new YT.Player(div.id, {
+          height: '360', width:'640', videoId: videoId,
+          playerVars:{autoplay:0,controls:1}
+        });
       });
     }
 
-    async function onPlayerStateChange(event, videoId, docId) {
-      if (!currentUser) return;
-      if (event.data === YT.PlayerState.ENDED) {
-        const userDocRef = doc(db, "users", currentUser.uid);
-        const docSnap = await getDoc(userDocRef);
-        let watchedVideos = [];
-        let views = 0;
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          watchedVideos = data.watchedVideos || [];
-          views = data.views || 0;
-        }
-        if (!watchedVideos.includes(videoId)) {
-          views += 1;
-          watchedVideos.push(videoId);
-          await setDoc(userDocRef, {views, watchedVideos}, {merge:true});
-          console.log(`تم زيادة المشاهدات! المجموع الحالي: ${views}`);
-        }
-      }
-    }
-
-    window.onYouTubeIframeAPIReady = () => { console.log('YT API ready'); };
   </script>
 </body>
 </html>
