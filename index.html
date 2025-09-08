@@ -39,12 +39,6 @@
       box-shadow: 0 2px 10px rgba(0,0,0,0.5);
     }
 
-    #balance {
-      color: gold;
-      font-weight: bold;
-      font-size: 1.2rem;
-    }
-
     #userMenu { position: relative; }
     #userBtn {
       background:none; border:none; color:#00e6ff; cursor:pointer; font-size:1rem;
@@ -60,73 +54,67 @@
     }
     #dropdown a:hover { background:#00e6ff; color:#000; }
 
+    /* مبلغ المستخدم */
+    #balance {
+      color: gold;
+      font-weight: bold;
+      margin-left: 15px;
+    }
+
     /* الفيديوهات */
     .video-container { width: 80%; max-width: 800px; margin: 20px 0; position: relative; }
 
-    .video-actions { margin-top: 5px; display: flex; justify-content: space-between; align-items: center; }
-
-    .analysis-modal {
-      display: none;
-      position: fixed; top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      background: rgba(0,0,0,0.95);
-      padding: 20px;
-      border: 2px solid #00e6ff;
-      border-radius: 10px;
-      z-index: 200;
-      max-width: 90%; max-height: 80%;
-      overflow-y: auto;
-      color: #00e6ff;
+    .video-controls {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-top: 5px;
     }
 
-    .close-analysis { cursor: pointer; color: red; font-weight: bold; margin-bottom: 10px; }
+    .interested-label { margin-left: 10px; }
+    .analyze-btn { cursor: pointer; color: #00e6ff; border:none; background:none; }
 
-    .chart-bar {
-      height: 20px;
-      background: #00e6ff;
-      margin: 5px 0;
+    /* تحليل الفيديو */
+    .chart-modal {
+      display: none; position: fixed; top:0; left:0; width:100%; height:100%;
+      background: rgba(0,0,0,0.9); justify-content: center; align-items: center;
+      z-index: 200; flex-direction: column;
+    }
+    .chart-content {
+      background:#111; padding:20px; border-radius:10px; width:80%; max-width:600px;
+      position: relative;
+    }
+    .close-chart {
+      position: absolute; top:10px; right:10px; cursor:pointer; color:#00e6ff;
+      font-size:1.2rem; border:none; background:none;
     }
 
-    .modal-overlay {
-      display: none;
-      position: fixed; top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.7);
-      z-index: 150;
+    /* إضافة فيديو للمشرف */
+    #addVideoForm {
+      display:none; flex-direction: column; background:#111; padding:15px;
+      border-radius:10px; margin:20px; width:80%; max-width:400px;
     }
-
-    .full-video-container {
-      display: none;
-      position: fixed;
-      top:0; left:0;
-      width:100%; height:100%;
-      background:black;
-      z-index:300;
-      justify-content:center;
-      align-items:center;
-    }
-
-    .full-video-container iframe {
-      width:90%;
-      height:90%;
-    }
-
-    .close-full-video {
-      position: absolute;
-      top:10px;
-      right:20px;
+    #addVideoForm input, #addVideoForm select, #addVideoForm button {
+      margin:5px 0;
+      padding:10px;
+      border-radius:5px;
+      border:1px solid #00e6ff;
+      background: rgba(0,0,0,0.2);
       color:#fff;
-      font-size:2rem;
+    }
+    #addVideoForm button {
       cursor:pointer;
-      z-index:350;
+      background:#00e6ff; color:#000;
     }
 
+    /* فلترة الفيديوهات */
+    #filterContainer { margin:15px; }
+    #filterContainer button {
+      margin:0 5px; padding:5px 10px; border-radius:5px; border:none; cursor:pointer; background:#00e6ff; color:#000;
+    }
   </style>
 </head>
 <body>
   <!-- الشريط العلوي -->
   <div id="topBar">
-    <div id="balance">$ <span id="userBalance">0</span> SR</div>
     <div id="userMenu">
       <button id="userBtn">اسم المستخدم ▼</button>
       <div id="dropdown">
@@ -134,31 +122,47 @@
         <a href="#" id="logoutLink">تسجيل الخروج</a>
       </div>
     </div>
+    <div id="balance">$ 0 SR</div>
   </div>
 
   <h1 id="welcome">مرحبا بك</h1>
 
-  <!-- حاويات الفيديو -->
-  <div id="videosContainer"></div>
-
-  <!-- تحليل -->
-  <div class="modal-overlay" id="modalOverlay"></div>
-  <div class="analysis-modal" id="analysisModal">
-    <div class="close-analysis" id="closeAnalysis">✖ اغلاق</div>
-    <div id="chartContent"></div>
+  <!-- فلترة الفيديوهات -->
+  <div id="filterContainer">
+    <button data-filter="all">الكل</button>
+    <button data-filter="interested">مهتم فقط</button>
   </div>
 
-  <!-- ملء الشاشة فيديو -->
-  <div class="full-video-container" id="fullVideoContainer">
-    <div class="close-full-video" id="closeFullVideo">✖</div>
-    <div id="fullVideoHolder"></div>
+  <!-- إضافة فيديو للمشرف -->
+  <div id="addVideoForm">
+    <input type="text" id="videoLink" placeholder="رابط فيديو YouTube">
+    <select id="videoRegion">
+      <option value="">اختر المنطقة</option>
+      <option value="الشرقية">الشرقية</option>
+      <option value="الوسطى">الوسطى</option>
+      <option value="الغربية">الغربية</option>
+      <option value="الكل">الكل</option>
+    </select>
+    <button id="addVideoBtn">إضافة الفيديو</button>
+  </div>
+
+  <!-- حاوية الفيديوهات -->
+  <div id="videosContainer"></div>
+
+  <!-- تحليل الفيديو -->
+  <div class="chart-modal" id="chartModal">
+    <div class="chart-content">
+      <button class="close-chart" id="closeChart">X</button>
+      <canvas id="chartCanvas" width="500" height="300"></canvas>
+    </div>
   </div>
 
   <script src="https://www.youtube.com/iframe_api"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc, collection, getDocs, addDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc, collection, addDoc, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDUW9M48CLaSNKbs-zrpuVl2Tu9EOqLUlA",
@@ -175,36 +179,43 @@
     const db = getFirestore(app);
 
     let currentUser = null;
-    let userData = null;
+    let currentUserData = null;
     const welcome = document.getElementById('welcome');
     const userBtn = document.getElementById('userBtn');
     const dropdown = document.getElementById('dropdown');
     const logoutLink = document.getElementById('logoutLink');
-    const userBalance = document.getElementById('userBalance');
-
+    const balanceDiv = document.getElementById('balance');
+    const addVideoForm = document.getElementById('addVideoForm');
+    const addVideoBtn = document.getElementById('addVideoBtn');
+    const videoLinkInput = document.getElementById('videoLink');
+    const videoRegionSelect = document.getElementById('videoRegion');
     const videosContainer = document.getElementById('videosContainer');
-    const modalOverlay = document.getElementById('modalOverlay');
-    const analysisModal = document.getElementById('analysisModal');
-    const closeAnalysis = document.getElementById('closeAnalysis');
-    const chartContent = document.getElementById('chartContent');
-    const fullVideoContainer = document.getElementById('fullVideoContainer');
-    const fullVideoHolder = document.getElementById('fullVideoHolder');
-    const closeFullVideo = document.getElementById('closeFullVideo');
+    const chartModal = document.getElementById('chartModal');
+    const closeChartBtn = document.getElementById('closeChart');
+    const chartCanvas = document.getElementById('chartCanvas');
+
+    const filterButtons = document.querySelectorAll('#filterContainer button');
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) window.location.href = "login.html";
       else {
         currentUser = user;
+        const userDocRef = doc(db, "users", user.uid);
+        const docSnap = await getDoc(userDocRef);
+        currentUserData = docSnap.exists() ? docSnap.data() : null;
+
         const displayName = user.displayName || user.email;
         welcome.textContent = `مرحبا بك، ${displayName}!`;
         userBtn.textContent = displayName + ' ▼';
 
-        const docSnap = await getDoc(doc(db,"users",user.uid));
-        if(docSnap.exists()){
-          userData = docSnap.data();
-          userBalance.textContent = userData.balance || 0;
-        }
+        // عرض المبلغ
+        const balance = currentUserData?.balance || 0;
+        balanceDiv.textContent = `$ ${balance} SR`;
 
+        // إظهار نموذج إضافة الفيديو للمشرف
+        if(currentUserData?.role === 'admin') addVideoForm.style.display = 'flex';
+
+        // تحميل الفيديوهات
         loadVideos();
       }
     });
@@ -218,102 +229,148 @@
       window.location.href = "login.html";
     });
 
-    async function loadVideos(){
-      videosContainer.innerHTML = '';
-      const querySnapshot = await getDocs(collection(db,"videos"));
-      querySnapshot.forEach(docSnap=>{
-        const data = docSnap.data();
-        const videoId = docSnap.id;
+    // إضافة فيديو جديد
+    addVideoBtn.addEventListener('click', async () => {
+      const link = videoLinkInput.value.trim();
+      const region = videoRegionSelect.value;
+      if(!link || !region){ alert("الرجاء تعبئة جميع الحقول."); return; }
+      try {
+        await addDoc(collection(db, "videos"), {
+          link, region, createdBy: currentUser.uid,
+          interestedUsers: [], views:0
+        });
+        videoLinkInput.value = '';
+        videoRegionSelect.value = '';
+        loadVideos();
+      } catch(err){ console.error(err); }
+    });
 
+    async function loadVideos(filter='all') {
+      videosContainer.innerHTML = '';
+      const querySnapshot = await getDocs(collection(db, "videos"));
+      querySnapshot.forEach(docSnap => {
+        const videoData = docSnap.data();
+        const videoId = docSnap.id;
         // تحقق من المنطقة
-        if(data.region !== 'الكل' && userData.region !== data.region) return;
+        if(videoData.region !== 'الكل' && videoData.region !== currentUserData.region) return;
+        // فلترة مهتم
+        if(filter==='interested' && !videoData.interestedUsers?.includes(currentUser.uid)) return;
 
         const videoDiv = document.createElement('div');
         videoDiv.className = 'video-container';
-        videoDiv.dataset.videoId = data.videoId;
+        videoDiv.dataset.videoId = videoId;
+        videoDiv.dataset.youtube = videoData.link;
 
-        const videoIframe = document.createElement('iframe');
-        videoIframe.width = "640";
-        videoIframe.height = "360";
-        videoIframe.src = `https://www.youtube.com/embed/${data.videoId}?enablejsapi=1`;
-        videoIframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
-        videoIframe.allowFullscreen = true;
-        videoDiv.appendChild(videoIframe);
+        // فيديو iframe
+        const iframe = document.createElement('div');
+        iframe.id = 'player_'+videoId;
+        videoDiv.appendChild(iframe);
 
-        // زر مهتم
-        const actionsDiv = document.createElement('div');
-        actionsDiv.className = 'video-actions';
+        // أزرار مهتم وعرض التحليل وحذف للمشرف
+        const controlsDiv = document.createElement('div');
+        controlsDiv.className='video-controls';
+
         const interestedLabel = document.createElement('label');
-        interestedLabel.innerHTML = 'مهتم <input type="checkbox" class="interested-checkbox">';
-        actionsDiv.appendChild(interestedLabel);
+        interestedLabel.className='interested-label';
+        interestedLabel.innerHTML = 'مهتم <input type="checkbox">';
+        const interestedCheckbox = interestedLabel.querySelector('input');
+        interestedCheckbox.checked = videoData.interestedUsers?.includes(currentUser.uid);
+        interestedCheckbox.addEventListener('change', async ()=>{
+          let users = videoData.interestedUsers || [];
+          if(interestedCheckbox.checked){ users.push(currentUser.uid); }
+          else{ users = users.filter(u=>u!==currentUser.uid); }
+          await setDoc(doc(db,"videos",videoId), {interestedUsers:users}, {merge:true});
+          videoData.interestedUsers = users;
+        });
+        controlsDiv.appendChild(interestedLabel);
 
-        // زر عرض التحليل
-        const analysisBtn = document.createElement('button');
-        analysisBtn.textContent = 'عرض التحليل';
-        actionsDiv.appendChild(analysisBtn);
+        const analyzeBtn = document.createElement('button');
+        analyzeBtn.className='analyze-btn';
+        analyzeBtn.textContent='عرض التحليل';
+        analyzeBtn.addEventListener('click', ()=> showChart(videoId, videoData));
+        controlsDiv.appendChild(analyzeBtn);
 
-        // زر الحذف للمشرف
-        if(userData.role === 'admin'){
+        if(currentUserData?.role==='admin'){
           const deleteBtn = document.createElement('button');
-          deleteBtn.textContent = 'حذف الفيديو';
-          deleteBtn.style.background = 'red';
-          deleteBtn.style.color = '#fff';
-          deleteBtn.onclick = async ()=>{
-            await deleteDoc(doc(db,"videos",videoId));
-            loadVideos();
-          };
-          actionsDiv.appendChild(deleteBtn);
+          deleteBtn.textContent='حذف الفيديو';
+          deleteBtn.addEventListener('click', async ()=>{
+            if(confirm('هل تريد حذف هذا الفيديو؟')){
+              await deleteDoc(doc(db,"videos",videoId));
+              loadVideos();
+            }
+          });
+          controlsDiv.appendChild(deleteBtn);
         }
 
-        videoDiv.appendChild(actionsDiv);
+        videoDiv.appendChild(controlsDiv);
         videosContainer.appendChild(videoDiv);
 
-        // عرض التحليل
-        analysisBtn.onclick = ()=>showAnalysis(data);
-
-        // ملء الشاشة عند التشغيل
-        videoIframe.addEventListener('click', ()=>{
-          fullVideoHolder.innerHTML = '';
-          const fullIframe = document.createElement('iframe');
-          fullIframe.src = `https://www.youtube.com/embed/${data.videoId}?autoplay=1`;
-          fullIframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
-          fullIframe.allowFullscreen = true;
-          fullVideoHolder.appendChild(fullIframe);
-          fullVideoContainer.style.display = 'flex';
+        // إنشاء YouTube Player
+        new YT.Player(iframe.id, {
+          videoId: extractVideoId(videoData.link),
+          height: '360',
+          width: '640',
+          playerVars: { autoplay:0, controls:1 },
+          events:{
+            'onStateChange': async (event)=>{
+              if(event.data === YT.PlayerState.ENDED){
+                let views = videoData.views || 0;
+                views++;
+                await setDoc(doc(db,"videos",videoId), {views}, {merge:true});
+                videoData.views = views;
+              }
+            },
+            'onReady': (event)=>{
+              // تشغيل بملء الشاشة عند التشغيل
+              event.target.getIframe().addEventListener('click', ()=>{
+                event.target.getIframe().requestFullscreen();
+              });
+            }
+          }
         });
       });
     }
 
-    closeAnalysis.onclick = ()=>{
-      analysisModal.style.display = 'none';
-      modalOverlay.style.display = 'none';
-    };
+    function extractVideoId(url){
+      const reg = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/;
+      const match = url.match(reg);
+      return match ? match[1] : '';
+    }
 
-    function showAnalysis(data){
-      chartContent.innerHTML = '';
-      const totalViews = data.views || 0;
-      const totalInterested = data.interestedUsers ? data.interestedUsers.length : 0;
-      chartContent.innerHTML += `<div>عدد المشاهدات: ${totalViews}</div>`;
-      chartContent.innerHTML += `<div>عدد المهتمين: ${totalInterested}</div>`;
-      const ageGroups = ['15-24','25-30','31-40','40+'];
-      ageGroups.forEach(group=>{
-        const count = (data.ageGroups && data.ageGroups[group]) || 0;
-        const bar = document.createElement('div');
-        bar.className = 'chart-bar';
-        bar.style.width = (count*10)+'px';
-        bar.textContent = `${group}: ${count}`;
-        chartContent.appendChild(bar);
+    // الرسم البياني
+    let chartInstance = null;
+    async function showChart(videoId, videoData){
+      chartModal.style.display='flex';
+      const labels = ['المشاهدات','مهتم','15-24','25-30','31-40','40+'];
+      const ageCounts = {'15-24':0,'25-30':0,'31-40':0,'40+':0};
+      if(videoData.interestedUsers){
+        for(let uid of videoData.interestedUsers){
+          const userSnap = await getDoc(doc(db,'users',uid));
+          const udata = userSnap.exists()? userSnap.data():null;
+          if(udata && udata.ageGroup) ageCounts[udata.ageGroup]++;
+        }
+      }
+      const data = [
+        videoData.views || 0,
+        videoData.interestedUsers?.length || 0,
+        ageCounts['15-24'], ageCounts['25-30'], ageCounts['31-40'], ageCounts['40+']
+      ];
+      if(chartInstance) chartInstance.destroy();
+      chartInstance = new Chart(chartCanvas, {
+        type:'bar',
+        data:{
+          labels, datasets:[{label:'التحليل', data, backgroundColor:['#00e6ff','#ffcc00','#ff6666','#66ff66','#ff66ff','#ff9966']}]
+        },
+        options:{responsive:true, scales:{y:{beginAtZero:true}}}
       });
-      analysisModal.style.display = 'block';
-      modalOverlay.style.display = 'block';
     }
 
-    // اغلاق الفيديو ملء الشاشة
-    closeFullVideo.onclick = ()=>{
-      fullVideoContainer.style.display = 'none';
-      fullVideoHolder.innerHTML = '';
-    }
+    closeChartBtn.addEventListener('click', ()=> chartModal.style.display='none');
 
+    // فلترة الفيديوهات
+    filterButtons.forEach(btn=>{
+      btn.addEventListener('click', ()=> loadVideos(btn.dataset.filter));
+    });
   </script>
 </body>
 </html>
