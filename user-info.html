@@ -32,7 +32,7 @@
       text-shadow: 0 0 15px #00e6ff, 0 0 30px #00e6ff;
     }
 
-    input, select {
+    input {
       margin: 10px 0;
       padding: 12px 15px;
       border-radius: 10px;
@@ -46,7 +46,7 @@
       transition: 0.3s;
     }
 
-    input:focus, select:focus {
+    input:focus {
       border-color: #00ffea;
       box-shadow: 0 0 10px #00ffea;
       background: rgba(0,0,0,0.6);
@@ -98,14 +98,6 @@
   <input type="text" id="ibanNumber" placeholder="رقم الآيبان">
   <input type="text" id="bankUsername" placeholder="اسم مستخدم الحساب البنكي">
 
-  <!-- اختيار المنطقة -->
-  <select id="userRegion">
-    <option value="">اختر المنطقة</option>
-    <option value="الشرقية">الشرقية</option>
-    <option value="الوسطى">الوسطى</option>
-    <option value="الغربية">الغربية</option>
-  </select>
-
   <!-- تغيير كلمة المرور -->
   <input type="password" id="newPassword" placeholder="كلمة المرور الجديدة">
   <input type="password" id="confirmPassword" placeholder="تأكيد كلمة المرور الجديدة">
@@ -133,7 +125,6 @@
 
     const displayNameField = document.getElementById('displayName');
     const emailField = document.getElementById('email');
-    const userRegionSelect = document.getElementById('userRegion');
     const backBtn = document.getElementById('backBtn');
     const saveBtn = document.getElementById('saveBtn');
 
@@ -156,7 +147,6 @@
           document.getElementById('bankName').value = data.bankName || '';
           document.getElementById('ibanNumber').value = data.ibanNumber || '';
           document.getElementById('bankUsername').value = data.bankUsername || '';
-          userRegionSelect.value = data.region || '';
         }
       }
     });
@@ -172,15 +162,9 @@
       const bankName = document.getElementById('bankName').value;
       const ibanNumber = document.getElementById('ibanNumber').value;
       const bankUsername = document.getElementById('bankUsername').value;
-      const region = userRegionSelect.value;
-
-      if(!region){
-        alert("الرجاء اختيار المنطقة");
-        return;
-      }
 
       const userDocRef = doc(db, "users", currentUser.uid);
-      await setDoc(userDocRef, { fullName, bankName, ibanNumber, bankUsername, region }, { merge: true });
+      await setDoc(userDocRef, { fullName, bankName, ibanNumber, bankUsername }, { merge: true });
 
       // تغيير كلمة المرور
       const newPassword = document.getElementById('newPassword').value;
