@@ -32,7 +32,7 @@
       text-shadow: 0 0 15px #00e6ff, 0 0 30px #00e6ff;
     }
 
-    input {
+    input, select {
       margin: 10px 0;
       padding: 12px 15px;
       border-radius: 10px;
@@ -46,7 +46,7 @@
       transition: 0.3s;
     }
 
-    input:focus {
+    input:focus, select:focus {
       border-color: #00ffea;
       box-shadow: 0 0 10px #00ffea;
       background: rgba(0,0,0,0.6);
@@ -82,13 +82,6 @@
       top: 20px;
       right: 20px;
     }
-
-    .stat {
-      margin-top: 15px;
-      font-size: 1.1rem;
-      text-shadow: 0 0 10px #00e6ff;
-    }
-
   </style>
 </head>
 <body>
@@ -105,20 +98,24 @@
   <input type="text" id="ibanNumber" placeholder="رقم الآيبان">
   <input type="text" id="bankUsername" placeholder="اسم مستخدم الحساب البنكي">
 
+  <!-- اختيار المنطقة -->
+  <select id="userRegion">
+    <option value="">اختر المنطقة</option>
+    <option value="الشرقية">الشرقية</option>
+    <option value="الوسطى">الوسطى</option>
+    <option value="الغربية">الغربية</option>
+  </select>
+
   <!-- تغيير كلمة المرور -->
   <input type="password" id="newPassword" placeholder="كلمة المرور الجديدة">
   <input type="password" id="confirmPassword" placeholder="تأكيد كلمة المرور الجديدة">
 
   <button class="btn" id="saveBtn">حفظ المعلومات</button>
 
-  <!-- إحصائيات -->
-  <div class="stat" id="viewsStat">عدد المشاهدات: 0</div>
-  <div class="stat" id="amountStat">المبلغ: 0</div>
-
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
     import { getAuth, onAuthStateChanged, updatePassword } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDUW9M48CLaSNKbs-zrpuVl2Tu9EOqLUlA",
@@ -136,10 +133,9 @@
 
     const displayNameField = document.getElementById('displayName');
     const emailField = document.getElementById('email');
+    const userRegionSelect = document.getElementById('userRegion');
     const backBtn = document.getElementById('backBtn');
     const saveBtn = document.getElementById('saveBtn');
-    const viewsStat = document.getElementById('viewsStat');
-    const amountStat = document.getElementById('amountStat');
 
     let currentUser = null;
 
@@ -152,18 +148,7 @@
 
         const userDocRef = doc(db, "users", user.uid);
 
-        // مراقبة Firestore لتحديث الإحصائيات مباشرة
-        onSnapshot(userDocRef, (docSnap) => {
-          if (docSnap.exists()) {
-            const data = docSnap.data();
-            const views = data.views || 0;
-            const amount = views / 2;
-            viewsStat.textContent = `عدد المشاهدات: ${views}`;
-            amountStat.textContent = `المبلغ: ${amount}`;
-          }
-        });
-
-        // جلب البيانات البنكية
+        // جلب البيانات من Firestore
         const docSnap = await getDoc(userDocRef);
         if (docSnap.exists()) {
           const data = docSnap.data();
@@ -171,6 +156,7 @@
           document.getElementById('bankName').value = data.bankName || '';
           document.getElementById('ibanNumber').value = data.ibanNumber || '';
           document.getElementById('bankUsername').value = data.bankUsername || '';
+          userRegionSelect.value = data.region || '';
         }
       }
     });
@@ -186,9 +172,15 @@
       const bankName = document.getElementById('bankName').value;
       const ibanNumber = document.getElementById('ibanNumber').value;
       const bankUsername = document.getElementById('bankUsername').value;
+      const region = userRegionSelect.value;
+
+      if(!region){
+        alert("الرجاء اختيار المنطقة");
+        return;
+      }
 
       const userDocRef = doc(db, "users", currentUser.uid);
-      await setDoc(userDocRef, { fullName, bankName, ibanNumber, bankUsername }, { merge: true });
+      await setDoc(userDocRef, { fullName, bankName, ibanNumber, bankUsername, region }, { merge: true });
 
       // تغيير كلمة المرور
       const newPassword = document.getElementById('newPassword').value;
