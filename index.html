@@ -133,55 +133,43 @@ logoutLink.addEventListener('click', async ()=>{ await signOut(auth); window.loc
 addVideoBtn.addEventListener('click', async ()=>{
   const link = videoLinkInput.value.trim();
   const region = videoRegionSelect.value;
-  if(!link || !region){ alert("الرجاء تعبئة الرابط والمنطقة."); return; }
-  try{
-    await addDoc(collection(db,"videos"),{
-      link, region, createdBy: currentUser.uid,
-      interestedUsers: [], views:0
-    });
-    videoLinkInput.value='';
-    videoRegionSelect.value='';
-    loadVideos();
-  }catch(err){ console.error(err); }
+  if(!link || !region){ alert("الرجاء تعبئة جميع الحقول."); return; }
+  await addDoc(collection(db,"videos"),{link, region, createdBy:currentUser.uid, interestedUsers:[], views:0});
+  videoLinkInput.value=''; videoRegionSelect.value='';
+  loadVideos();
 });
 
 async function loadVideos(){
   videosContainer.innerHTML='';
-  const querySnapshot = await getDocs(collection(db,"videos"));
+  const querySnapshot=await getDocs(collection(db,"videos"));
   querySnapshot.forEach(docSnap=>{
-    const videoData = docSnap.data();
-    const videoId = docSnap.id;
-
-    // فلترة حسب منطقة المستخدم
+    const videoData=docSnap.data(); const videoId=docSnap.id;
     if(videoData.region!=='الكل' && videoData.region!==currentUserData.region) return;
 
-    const videoDiv = document.createElement('div'); videoDiv.className='video-container';
-    videoDiv.dataset.videoId = videoId;
-    const iframe = document.createElement('div'); iframe.id='player_'+videoId; videoDiv.appendChild(iframe);
+    const videoDiv=document.createElement('div'); videoDiv.className='video-container'; videoDiv.dataset.videoId=videoId;
+    const iframe=document.createElement('div'); iframe.id='player_'+videoId; videoDiv.appendChild(iframe);
 
-    const controlsDiv = document.createElement('div'); controlsDiv.className='video-controls';
+    const controlsDiv=document.createElement('div'); controlsDiv.className='video-controls';
 
-    const interestedLabel = document.createElement('label'); interestedLabel.className='interested-label';
+    const interestedLabel=document.createElement('label'); interestedLabel.className='interested-label';
     interestedLabel.innerHTML='مهتم <input type="checkbox">';
-    const interestedCheckbox = interestedLabel.querySelector('input');
+    const interestedCheckbox=interestedLabel.querySelector('input');
     interestedCheckbox.checked = videoData.interestedUsers?.includes(currentUser.uid);
     interestedCheckbox.addEventListener('change', async ()=>{
-      let users = videoData.interestedUsers || [];
-      if(interestedCheckbox.checked){ users.push(currentUser.uid); }
-      else{ users = users.filter(u=>u!==currentUser.uid); }
-      await setDoc(doc(db,"videos",videoId), {interestedUsers:users},{merge:true});
-      videoData.interestedUsers = users;
+      let users=videoData.interestedUsers||[];
+      if(interestedCheckbox.checked) users.push(currentUser.uid);
+      else users = users.filter(u=>u!==currentUser.uid);
+      await setDoc(doc(db,"videos",videoId), {interestedUsers:users}, {merge:true});
+      videoData.interestedUsers=users;
     });
     controlsDiv.appendChild(interestedLabel);
 
-    const analyzeBtn = document.createElement('button'); analyzeBtn.className='analyze-btn';
-    analyzeBtn.textContent='عرض التحليل';
-    analyzeBtn.addEventListener('click', ()=> showChart(videoData));
-    controlsDiv.appendChild(analyzeBtn);
-
     if(currentUserData?.role==='admin'){
-      const deleteBtn=document.createElement('button');
-      deleteBtn.textContent='حذف الفيديو';
+      const analyzeBtn=document.createElement('button'); analyzeBtn.className='analyze-btn'; analyzeBtn.textContent='عرض التحليل';
+      analyzeBtn.addEventListener('click', ()=> showChart(videoData));
+      controlsDiv.appendChild(analyzeBtn);
+
+      const deleteBtn=document.createElement('button'); deleteBtn.textContent='حذف الفيديو';
       deleteBtn.addEventListener('click', async ()=>{
         if(confirm('هل تريد حذف هذا الفيديو؟')){
           await deleteDoc(doc(db,"videos",videoId));
@@ -194,19 +182,22 @@ async function loadVideos(){
     videoDiv.appendChild(controlsDiv);
     videosContainer.appendChild(videoDiv);
 
-    new YT.Player(iframe.id, {
-      videoId: extractVideoId(videoData.link), height:'360', width:'640', playerVars:{autoplay:0,controls:1},
+    // YouTube Player
+    new YT.Player(iframe.id,{
+      videoId: extractVideoId(videoData.link),
+      height:'360', width:'640',
+      playerVars:{ autoplay:0, controls:0, disablekb:1, modestbranding:1, rel:0, fs:1 },
       events:{
         'onStateChange': async (event)=>{
           if(event.data===YT.PlayerState.ENDED){
             if(!watchedVideos.has(videoId)){
               watchedVideos.add(videoId);
               updateEarnedAmount();
-              await setDoc(doc(db,"users",currentUser.uid),{watchedVideos:Array.from(watchedVideos)},{merge:true});
+              await setDoc(doc(db,"users",currentUser.uid), {watchedVideos:Array.from(watchedVideos)}, {merge:true});
             }
             let views = videoData.views || 0; views++;
             await setDoc(doc(db,"videos",videoId), {views},{merge:true});
-            videoData.views = views;
+            videoData.views=views;
           }
         },
         'onReady': (event)=>{
@@ -216,6 +207,7 @@ async function loadVideos(){
         }
       }
     });
+
   });
 }
 
@@ -230,12 +222,16 @@ async function showChart(videoData){
   chartInstance = new Chart(chartCanvas,{
     type:'bar',
     data:{ labels, datasets:[{label:'التحليل', data, backgroundColor:['#00e6ff','#ffcc00']}] },
-    options:{ plugins:{datalabels:{anchor:'end',align:'end',color:'#fff',font:{weight:'bold'}}}, responsive:true, scales:{y:{beginAtZero:true}} },
+    options:{
+      plugins:{datalabels:{anchor:'end', align:'end', color:'#fff', font:{weight:'bold'}}},
+      responsive:true, scales:{y:{beginAtZero:true}}
+    },
     plugins:[ChartDataLabels]
   });
 }
 
 closeChartBtn.addEventListener('click', ()=> chartModal.style.display='none');
+
 </script>
 </body>
 </html>
